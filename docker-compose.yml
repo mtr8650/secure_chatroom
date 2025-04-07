@@ -3,7 +3,7 @@ version: "3.8"
 services:
   mongo:
     image: hub.hamdocker.ir/library/mongo:6.0
-    container_name: mongo
+    container_name: secure_chat_mongo
     ports:
       - "27017:27017"
     volumes:
@@ -11,13 +11,14 @@ services:
 
   chatroom:
     build: .
-    container_name: chat-room
+    container_name: secure_chat-room
     ports:
       - "8000:8000"
     depends_on:
       - mongo
-    environment:
-      - MONGODB_URL=mongodb://mongo:27017
+    env_file:
+      - .env  # ✅ Automatically sets MONGODB_URI and email credentials
+    restart: unless-stopped  # ✅ optional but good
 
 volumes:
   mongo_data:
