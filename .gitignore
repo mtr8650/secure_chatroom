@@ -1,0 +1,16 @@
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Poetry & Python
+poetry.lock
+*.egg-info/
+
+# Logs
+*.log
