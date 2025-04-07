@@ -4,7 +4,11 @@ from jose import jwt, JWTError
 from chat_room.models import Message, MessageCreate, User
 from beanie import PydanticObjectId
 from datetime import datetime, timezone
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
+
+security = HTTPBearer()
+
 
 from chat_room.email_utils import send_email_notification  # ✅ Import email utility
 
@@ -18,10 +22,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # ✅ Dependency to get current user from JWT
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> User:
+    token = credentials.credentials  # Grab just the token string
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
+        user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         user = await User.get(PydanticObjectId(user_id))

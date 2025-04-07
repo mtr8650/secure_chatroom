@@ -1,10 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer
 from chat_room.models import User, UserCreate, UserLogin, pwd_context
 from beanie import PydanticObjectId
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 import os
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+
+
+security = HTTPBearer()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -13,7 +18,7 @@ JWT_SECRET = os.getenv("JWT_SECRET", "secret")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -23,7 +28,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
+) -> User:
+    token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
