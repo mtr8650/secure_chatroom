@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from fastapi.security import HTTPBearer
 from chat_room.models import User, UserCreate, UserLogin, pwd_context
 from beanie import PydanticObjectId
 from jose import jwt, JWTError
@@ -29,8 +28,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
-) -> User:
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> User:  
     token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

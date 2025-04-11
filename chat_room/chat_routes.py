@@ -10,7 +10,7 @@ import os
 security = HTTPBearer()
 
 
-from chat_room.email_utils import send_email_notification  # ✅ Import email utility
+from chat_room.email_utils import send_email_notification 
 
 
 router = APIRouter(tags=["chat"])
@@ -21,11 +21,11 @@ ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-# ✅ Dependency to get current user from JWT
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> User:
-    token = credentials.credentials  # Grab just the token string
+    token = credentials.credentials  
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
@@ -39,17 +39,15 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# ✅ Message sending with email alert
 @router.post("/send")
 async def send_message(
     msg: MessageCreate, current_user: User = Depends(get_current_user)
 ):
-    # Find the recipient user
     recipient = await User.get(PydanticObjectId(msg.recipient_id))
     if not recipient:
         raise HTTPException(status_code=404, detail="Recipient not found")
 
-    # Create and insert the message
+ 
     message = Message(
         sender_id=str(current_user.id),
         recipient_id=msg.recipient_id,
@@ -58,7 +56,7 @@ async def send_message(
     )
     await message.insert()
 
-    # ✅ Send email notification
+
     await send_email_notification(
         to_email=recipient.email,
         subject="📨 New Message Received",
@@ -68,7 +66,7 @@ async def send_message(
     return {"msg": "Message sent successfully"}
 
 
-# ✅ Get inbox for logged-in user
+
 @router.get("/inbox")
 async def get_inbox(current_user: User = Depends(get_current_user)):
     messages = await Message.find(Message.recipient_id == str(current_user.id)).sort("-timestamp").to_list()

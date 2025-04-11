@@ -3,10 +3,11 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
+from starlette.concurrency import run_in_threadpool
 
 load_dotenv()
 
-async def send_email_notification(to_email: str, subject: str, body: str):
+def _send_email(to_email: str, subject: str, body: str):
     smtp_host = os.getenv("SMTP_HOST")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
     smtp_user = os.getenv("SMTP_USER")
@@ -16,7 +17,6 @@ async def send_email_notification(to_email: str, subject: str, body: str):
     msg["From"] = smtp_user
     msg["To"] = to_email
     msg["Subject"] = subject
-
     msg.attach(MIMEText(body, "plain"))
 
     try:
@@ -27,3 +27,6 @@ async def send_email_notification(to_email: str, subject: str, body: str):
             print(f"✅ Email sent to {to_email}")
     except Exception as e:
         print(f"❌ Failed to send email: {e}")
+
+async def send_email_notification(to_email: str, subject: str, body: str):
+    await run_in_threadpool(_send_email, to_email, subject, body)

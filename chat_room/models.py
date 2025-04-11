@@ -15,6 +15,7 @@ class PyObjectId(ObjectId):
             cls.validate,
             core_schema.str_schema(),
         )
+    
 
     @classmethod
     def validate(cls, v: Any) -> str:
